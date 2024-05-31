@@ -1,9 +1,9 @@
+import os
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from steam_api import get_steam_id, find_app_id
-from game_manager import find_ini_file, update_ini_file, create_steam_appid_file, copy_ini_file_to_root
+from game_manager import find_ini_file, update_ini_file, create_steam_appid_file
 from steam_integration import add_non_steam_game
-import os
 from icoextract import IconExtractor, IconExtractorError
 
 
@@ -51,8 +51,7 @@ def run_app():
             if ini_file:
                 update_ini_file(ini_file, steam_id, username)
                 create_steam_appid_file(game_directory, app_id)
-                # copy_ini_file_to_root(game_directory, ini_file)
-                add_non_steam_game(game_name, exe_path, game_directory, app_id, icon_path)
+                add_non_steam_game(game_name, exe_path, game_directory, icon_path)
                 messagebox.showinfo("Success", "Game added successfully!")
             else:
                 messagebox.showerror("Error", "INI file not found.")

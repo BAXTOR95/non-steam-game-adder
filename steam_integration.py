@@ -39,35 +39,40 @@ def write_shortcuts_file(path, data):
         f.write(data)
 
 
-def create_backup(path):
-    backup_path = f"{path}.backup_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    shutil.copy(path, backup_path)
-    return backup_path
-
-def format_app_id(app_id):
-    return str(app_id).encode('utf-8')
-
 def game_exists(shortcuts_data, app_name):
     return app_name.encode('utf-8') in shortcuts_data
 
-def remove_trailing_bs(data):
-    return data.rstrip(BS)
+
+def find_last_entry_index(shortcuts_data):
+    last_index = 0
+    while True:
+        index = shortcuts_data.find(NUL + str(last_index).encode('utf-8') + NUL)
+        if index == -1:
+            break
+        last_index += 1
+    return last_index - 1
+
 
 def add_non_steam_game_entry(
-    shortcuts_data, app_name, exe, start_dir, app_id, icon='', shortcut_path=''
+    shortcuts_data, app_name, exe, start_dir, icon='', shortcut_path=''
 ):
     if b'shortcuts' not in shortcuts_data:
         shortcuts_data = NUL + b'shortcuts' + NUL
 
-    # Remove trailing BS characters if present
-    shortcuts_data = remove_trailing_bs(shortcuts_data)
+    last_entry_index = find_last_entry_index(shortcuts_data)
+    new_entry_index = last_entry_index + 1
 
-    last_entry_index = shortcuts_data.rfind(NUL + b'0' + NUL)
-    if last_entry_index == -1:
-        last_entry_index = len(shortcuts_data)
+    shortcuts_data = shortcuts_data.rstrip(BS)
+
+    if new_entry_index == 0:
+        entry_start = NUL + b'0' + NUL
+    else:
+        entry_start = NUL + str(new_entry_index).encode('utf-8') + NUL
+        # Ensure there are two trailing BS characters
+        shortcuts_data = shortcuts_data + BS + BS
 
     app_struct = (
-        NUL + b'0' + NUL +
+        entry_start +
         STX + b'appid' + NUL + (NUL * 4) +
         SOH + b'AppName' + NUL + app_name.encode('utf-8') + NUL +
         SOH + b'Exe' + NUL + f'"{exe}"'.encode('utf-8') + NUL +
@@ -88,15 +93,11 @@ def add_non_steam_game_entry(
         BS + BS + BS + BS
     )
 
-    return (
-        shortcuts_data[:last_entry_index]
-        + app_struct
-        + shortcuts_data[last_entry_index:]
-    )
+    return shortcuts_data + app_struct
 
 
 def process_user_id(
-    steam_path, user_id, app_name, exe, start_dir, app_id, icon='', shortcut_path=''
+    steam_path, user_id, app_name, exe, start_dir, icon='', shortcut_path=''
 ):
     shortcuts_file = os.path.join(
         steam_path, 'userdata', user_id, 'config', 'shortcuts.vdf'
@@ -105,9 +106,6 @@ def process_user_id(
     if not os.path.exists(shortcuts_file):
         print(f"Shortcuts file for user {user_id} not found, creating a new one.")
         open(shortcuts_file, 'wb').write(NUL + b'shortcuts' + NUL)
-
-    backup_file = create_backup(shortcuts_file)
-    print(f"Backup created at: {backup_file}")
 
     shortcuts_data = read_shortcuts_file(shortcuts_file)
 
@@ -120,7 +118,6 @@ def process_user_id(
         app_name=app_name,
         exe=exe,
         start_dir=start_dir,
-        app_id=app_id,
         icon=icon,
         shortcut_path=shortcut_path,
     )
@@ -129,7 +126,7 @@ def process_user_id(
     print(f"Non-Steam game '{app_name}' added for user {user_id} successfully.")
 
 
-def add_non_steam_game(app_name, exe, start_dir, app_id, icon=''):
+def add_non_steam_game(app_name, exe, start_dir, icon=''):
     steam_path = locate_steam_installation()
     if not steam_path:
         raise FileNotFoundError("Steam installation not found")
@@ -137,4 +134,4 @@ def add_non_steam_game(app_name, exe, start_dir, app_id, icon=''):
     user_ids = find_steam_user_ids(steam_path)
 
     for user_id in user_ids:
-        process_user_id(steam_path, user_id, app_name, exe, start_dir, app_id, icon)
+        process_user_id(steam_path, user_id, app_name, exe, start_dir, icon)
