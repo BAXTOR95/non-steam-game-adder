@@ -15,6 +15,9 @@ def get_app_list():
 
 
 def find_app_id(game_name):
+    if game_name == "":
+        return None
+
     apps = get_app_list()
     for app in apps:
         if app['name'].lower() == game_name.lower():

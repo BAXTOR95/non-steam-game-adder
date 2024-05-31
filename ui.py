@@ -1,7 +1,9 @@
 import os
 import json
+import ttkbootstrap as ttk
 import tkinter as tk
-from tkinter import messagebox, filedialog
+from ttkbootstrap.constants import *
+from tkinter import messagebox, filedialog, PhotoImage
 from steam_api import get_steam_id, find_app_id
 from game_manager import find_ini_file, update_ini_file, create_steam_appid_file
 from steam_integration import add_non_steam_game
@@ -37,16 +39,25 @@ def extract_icon_path(executable_path):
 def run_app():
     def browse_directory():
         directory = filedialog.askdirectory()
-        directory_entry.delete(0, tk.END)
-        directory_entry.insert(0, directory)
+        if directory:
+            directory_entry.config(state=tk.NORMAL)
+            directory_entry.delete(0, tk.END)
+            directory_entry.insert(0, directory)
+            directory_entry.config(state="readonly")
 
     def browse_executable():
         exe_path = filedialog.askopenfilename(filetypes=[("Executable files", "*.exe")])
-        exe_entry.delete(0, tk.END)
-        exe_entry.insert(0, exe_path)
-        icon_path = extract_icon_path(exe_path)
-        icon_entry.delete(0, tk.END)
-        icon_entry.insert(0, icon_path)
+        if exe_path:
+            exe_entry.config(state=tk.NORMAL)
+            exe_entry.delete(0, tk.END)
+            exe_entry.insert(0, exe_path)
+            exe_entry.config(state="readonly")
+            icon_path = extract_icon_path(exe_path)
+            if icon_path:
+                icon_entry.config(state=tk.NORMAL)
+                icon_entry.delete(0, tk.END)
+                icon_entry.insert(0, icon_path)
+                icon_entry.config(state="readonly")
 
     def add_game():
         game_name = game_name_entry.get()
@@ -60,6 +71,20 @@ def run_app():
         save_config(config)
 
         try:
+            steam_id = get_steam_id(username)
+            if not steam_id:
+                messagebox.showerror(
+                    "Error", "Steam Username not found. Please enter a valid username."
+                )
+                return
+
+            app_id = find_app_id(game_name)
+            if not app_id:
+                messagebox.showerror(
+                    "Error", "Game Name not found. Please enter a valid game name."
+                )
+                return
+
             if is_steam_running():
                 messagebox.showinfo("Info", "Steam needs to be closed to proceed.")
                 if not close_steam():
@@ -68,8 +93,6 @@ def run_app():
                     )
                     return
 
-            steam_id = get_steam_id(username)
-            app_id = find_app_id(game_name)
             ini_file = find_ini_file(game_directory)
 
             if ini_file:
@@ -83,41 +106,85 @@ def run_app():
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
-    root = tk.Tk()
-    root.title("Steam Non-Steam Game Adder")
+    root = ttk.Window(themename="darkly")
+    root.title("Non-Steam Game Adder")
+    root.geometry("600x350")
+    root.iconbitmap("assets/app_icon.ico")  # Set application icon
 
-    tk.Label(root, text="Game Name:").grid(row=0, column=0)
-    game_name_entry = tk.Entry(root)
-    game_name_entry.grid(row=0, column=1)
+    style = ttk.Style()
+    style.configure("TLabel", font=("Helvetica", 12), foreground="white")
+    style.configure("TEntry", font=("Helvetica", 12))
+    style.configure("TButton", font=("Helvetica", 12))
 
-    tk.Label(root, text="Steam Username:").grid(row=1, column=0)
-    username_entry = tk.Entry(root)
-    username_entry.grid(row=1, column=1)
+    frame = ttk.Frame(root, padding=20)
+    frame.pack(fill=BOTH, expand=True)
+
+    title_label = ttk.Label(
+        frame,
+        text="Non-Steam Game Adder",
+        font=("Helvetica", 16, "bold"),
+        foreground="white",
+    )
+    title_label.grid(row=0, columnspan=3, padx=10, pady=10)
+
+    ttk.Label(frame, text="Game Name:").grid(row=1, column=0, padx=10, pady=5, sticky=W)
+    game_name_entry = ttk.Entry(frame, width=30)
+    game_name_entry.grid(row=1, column=1, padx=10, pady=5, sticky=W, columnspan=2)
+
+    ttk.Label(frame, text="Steam Username:").grid(
+        row=2, column=0, padx=10, pady=5, sticky=W
+    )
+    username_entry = ttk.Entry(frame, width=30)
+    username_entry.grid(row=2, column=1, padx=10, pady=5, sticky=W, columnspan=2)
 
     config = load_config()
     if 'username' in config:
         username_entry.insert(0, config['username'])
 
-    tk.Label(root, text="Game Directory:").grid(row=2, column=0)
-    directory_entry = tk.Entry(root)
-    directory_entry.grid(row=2, column=1)
-    browse_directory_button = tk.Button(root, text="Browse", command=browse_directory)
-    browse_directory_button.grid(row=2, column=2)
+    ttk.Label(frame, text="Game Directory:").grid(
+        row=3, column=0, padx=10, pady=5, sticky=W
+    )
+    directory_entry = ttk.Entry(frame, width=30, state="readonly")
+    directory_entry.grid(row=3, column=1, padx=10, pady=5, sticky=W)
+    browse_directory_button = ttk.Button(frame, text="Browse", command=browse_directory)
+    browse_directory_button.grid(row=3, column=2, padx=10, pady=5, sticky=W)
 
-    tk.Label(root, text="Executable Path:").grid(row=3, column=0)
-    exe_entry = tk.Entry(root)
-    exe_entry.grid(row=3, column=1)
-    browse_executable_button = tk.Button(root, text="Browse", command=browse_executable)
-    browse_executable_button.grid(row=3, column=2)
+    ttk.Label(frame, text="Executable Path:").grid(
+        row=4, column=0, padx=10, pady=5, sticky=W
+    )
+    exe_entry = ttk.Entry(frame, width=30, state="readonly")
+    exe_entry.grid(row=4, column=1, padx=10, pady=5, sticky=W)
+    browse_executable_button = ttk.Button(
+        frame, text="Browse", command=browse_executable
+    )
+    browse_executable_button.grid(row=4, column=2, padx=10, pady=5, sticky=W)
 
-    tk.Label(root, text="Icon Path (optional):").grid(row=4, column=0)
-    icon_entry = tk.Entry(root)
-    icon_entry.grid(row=4, column=1)
+    ttk.Label(frame, text="Icon Path (optional):").grid(
+        row=5, column=0, padx=10, pady=5, sticky=W
+    )
+    icon_entry = ttk.Entry(frame, width=30, state="readonly")
+    icon_entry.grid(row=5, column=1, padx=10, pady=5, sticky=W)
 
-    add_button = tk.Button(root, text="Add Game", command=add_game)
-    add_button.grid(row=5, columnspan=3)
+    add_game_icon = PhotoImage(file="assets/add_game_icon.png")
+    add_button = ttk.Button(
+        frame,
+        text="Add Game",
+        image=add_game_icon,
+        compound=LEFT,
+        command=add_game,
+        bootstyle=SUCCESS,
+    )
+    add_button.grid(row=6, column=1, padx=10, pady=10, sticky=W)
 
-    open_steam_button = tk.Button(root, text="Open Steam", command=open_steam)
-    open_steam_button.grid(row=6, columnspan=3)
+    steam_icon = PhotoImage(file="assets/steam_icon.png")
+    open_steam_button = ttk.Button(
+        frame,
+        text="Open Steam",
+        image=steam_icon,
+        compound=LEFT,
+        command=open_steam,
+        bootstyle=PRIMARY,
+    )
+    open_steam_button.grid(row=6, column=2, padx=10, pady=10, sticky=W)
 
     root.mainloop()
