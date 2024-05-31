@@ -1,0 +1,8 @@
+certifi==2024.2.2
+charset-normalizer==3.3.2
+icoextract==0.1.5
+idna==3.7
+pefile==2023.2.7
+python-dotenv==1.0.1
+requests==2.32.3
+urllib3==2.2.1

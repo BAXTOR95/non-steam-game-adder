@@ -1,22 +1,34 @@
 import os
+import json
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from steam_api import get_steam_id, find_app_id
 from game_manager import find_ini_file, update_ini_file, create_steam_appid_file
 from steam_integration import add_non_steam_game
+from steam_manager import close_steam, open_steam, is_steam_running
 from icoextract import IconExtractor, IconExtractorError
+
+CONFIG_FILE = 'config.json'
+
+
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'r') as file:
+            return json.load(file)
+    return {}
+
+
+def save_config(config):
+    with open(CONFIG_FILE, 'w') as file:
+        json.dump(config, file)
 
 
 def extract_icon_path(executable_path):
     try:
         extractor = IconExtractor(executable_path)
-
-        # Export the first group icon to a .ico file
         icon_file = os.path.join(os.path.dirname(executable_path), "icon.ico")
         extractor.export_icon(icon_file, num=0)
-
         return icon_file
-
     except IconExtractorError:
         print("No icons available, or the resource is malformed")
         pass
@@ -43,7 +55,19 @@ def run_app():
         exe_path = exe_entry.get()
         icon_path = icon_entry.get()
 
+        config = load_config()
+        config['username'] = username
+        save_config(config)
+
         try:
+            if is_steam_running():
+                messagebox.showinfo("Info", "Steam needs to be closed to proceed.")
+                if not close_steam():
+                    messagebox.showerror(
+                        "Error", "Unable to close Steam. Please close it manually."
+                    )
+                    return
+
             steam_id = get_steam_id(username)
             app_id = find_app_id(game_name)
             ini_file = find_ini_file(game_directory)
@@ -70,6 +94,10 @@ def run_app():
     username_entry = tk.Entry(root)
     username_entry.grid(row=1, column=1)
 
+    config = load_config()
+    if 'username' in config:
+        username_entry.insert(0, config['username'])
+
     tk.Label(root, text="Game Directory:").grid(row=2, column=0)
     directory_entry = tk.Entry(root)
     directory_entry.grid(row=2, column=1)
@@ -88,5 +116,8 @@ def run_app():
 
     add_button = tk.Button(root, text="Add Game", command=add_game)
     add_button.grid(row=5, columnspan=3)
+
+    open_steam_button = tk.Button(root, text="Open Steam", command=open_steam)
+    open_steam_button.grid(row=6, columnspan=3)
 
     root.mainloop()
