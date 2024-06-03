@@ -2,12 +2,14 @@ import ttkbootstrap as ttk
 import tkinter as tk
 from ttkbootstrap.constants import *
 from tkinter import messagebox, filedialog, PhotoImage
-from steam_api import get_steam_id, find_app_id
+from steam_api import SteamAPI
 from game_manager import find_ini_file, update_ini_file, create_steam_appid_file
 from steam_integration import add_non_steam_game
-from steam_manager import close_steam, open_steam, is_steam_running
+from steam_manager import SteamManager
 from config_management import load_config, save_config
 from icon_handler import extract_icon_path
+from config import API_KEY
+import webbrowser
 
 
 class NonSteamGameAdderApp:
@@ -16,6 +18,9 @@ class NonSteamGameAdderApp:
         self.root.title("Non-Steam Game Adder")
         self.root.geometry("600x350")
         self.root.iconbitmap("assets/app_icon.ico")  # Set application icon
+
+        self.steam_manager = SteamManager()
+        self.steam_api = SteamAPI(API_KEY)
 
         self.create_styles()
         self.create_widgets()
@@ -113,7 +118,7 @@ class NonSteamGameAdderApp:
             text="Open Steam",
             image=self.steam_icon,
             compound=LEFT,
-            command=open_steam,
+            command=self.steam_manager.open_steam,
             bootstyle=PRIMARY,
         )
         open_steam_button.grid(row=6, column=2, padx=10, pady=10, sticky=W)
@@ -152,23 +157,71 @@ class NonSteamGameAdderApp:
         save_config(config)
 
         try:
-            steam_id = get_steam_id(username)
+            steam_id = self.steam_api.get_steam_id(username)
             if not steam_id:
                 messagebox.showerror(
                     "Error", "Steam Username not found. Please enter a valid username."
                 )
                 return
 
-            app_id = find_app_id(game_name)
+            app_id = self.steam_api.find_app_id(game_name)
             if not app_id:
                 messagebox.showerror(
                     "Error", "Game Name not found. Please enter a valid game name."
                 )
+                self.prompt_for_app_id(game_name)
                 return
 
-            if is_steam_running():
+            self.continue_adding_game(
+                app_id,
+                game_name,
+                steam_id,
+                username,
+                game_directory,
+                exe_path,
+                icon_path,
+            )
+
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+    def prompt_for_app_id(self, game_name):
+        url = f"https://steamdb.info/search/?a=all&q={game_name}"
+        webbrowser.open(url)
+
+        def submit_app_id():
+            app_id = app_id_entry.get()
+            self.manual_app_id = app_id
+            manual_app_id_window.destroy()
+            self.continue_adding_game(
+                app_id,
+                self.game_name_entry.get(),
+                self.steam_api.get_steam_id(self.username_entry.get()),
+                self.username_entry.get(),
+                self.directory_entry.get(),
+                self.exe_entry.get(),
+                self.icon_entry.get(),
+            )
+
+        manual_app_id_window = tk.Toplevel(self.root)
+        manual_app_id_window.title("Enter Steam App ID")
+        manual_app_id_window.geometry("300x150")
+
+        tk.Label(manual_app_id_window, text="Enter Steam App ID:").pack(pady=10)
+        app_id_entry = ttk.Entry(manual_app_id_window, width=30)
+        app_id_entry.pack(pady=5)
+        submit_button = ttk.Button(
+            manual_app_id_window, text="Submit", command=submit_app_id
+        )
+        submit_button.pack(pady=10)
+
+    def continue_adding_game(
+        self, app_id, game_name, steam_id, username, game_directory, exe_path, icon_path
+    ):
+        try:
+            if self.steam_manager.is_steam_running():
                 messagebox.showinfo("Info", "Steam needs to be closed to proceed.")
-                if not close_steam():
+                if not self.steam_manager.close_steam():
                     messagebox.showerror(
                         "Error", "Unable to close Steam. Please close it manually."
                     )
