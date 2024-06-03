@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 NUL = b'\x00'
 SOH = b'\x01'
