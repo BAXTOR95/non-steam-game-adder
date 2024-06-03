@@ -3,7 +3,7 @@ import tkinter as tk
 from ttkbootstrap.constants import *
 from tkinter import messagebox, filedialog, PhotoImage
 from steam_api import SteamAPI
-from game_manager import find_ini_file, update_ini_file, create_steam_appid_file
+from game_manager import GameManager
 from steam_integration import add_non_steam_game
 from steam_manager import SteamManager
 from config_management import load_config, save_config
@@ -21,6 +21,7 @@ class NonSteamGameAdderApp:
 
         self.steam_manager = SteamManager()
         self.steam_api = SteamAPI(API_KEY)
+        self.game_manager = GameManager()
 
         self.create_styles()
         self.create_widgets()
@@ -227,11 +228,11 @@ class NonSteamGameAdderApp:
                     )
                     return
 
-            ini_file = find_ini_file(game_directory)
+            ini_file = self.game_manager.find_ini_file(game_directory)
 
             if ini_file:
-                update_ini_file(ini_file, steam_id, username)
-                create_steam_appid_file(game_directory, app_id)
+                self.game_manager.update_ini_file(ini_file, steam_id, username)
+                self.game_manager.create_steam_appid_file(game_directory, app_id)
                 add_non_steam_game(game_name, exe_path, game_directory, icon_path)
                 messagebox.showinfo("Success", "Game added successfully!")
             else:
