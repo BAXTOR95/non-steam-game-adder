@@ -4,7 +4,7 @@ from ttkbootstrap.constants import *
 from tkinter import messagebox, filedialog, PhotoImage
 from steam_api import SteamAPI
 from game_manager import GameManager
-from steam_integration import add_non_steam_game
+from steam_integration import SteamIntegration
 from steam_manager import SteamManager
 from config_management import load_config, save_config
 from icon_handler import extract_icon_path
@@ -19,9 +19,7 @@ class NonSteamGameAdderApp:
         self.root.geometry("600x350")
         self.root.iconbitmap("assets/app_icon.ico")  # Set application icon
 
-        self.steam_manager = SteamManager()
         self.steam_api = SteamAPI(API_KEY)
-        self.game_manager = GameManager()
 
         self.create_styles()
         self.create_widgets()
@@ -119,7 +117,7 @@ class NonSteamGameAdderApp:
             text="Open Steam",
             image=self.steam_icon,
             compound=LEFT,
-            command=self.steam_manager.open_steam,
+            command=SteamManager.open_steam,
             bootstyle=PRIMARY,
         )
         open_steam_button.grid(row=6, column=2, padx=10, pady=10, sticky=W)
@@ -220,20 +218,22 @@ class NonSteamGameAdderApp:
         self, app_id, game_name, steam_id, username, game_directory, exe_path, icon_path
     ):
         try:
-            if self.steam_manager.is_steam_running():
+            if SteamManager.is_steam_running():
                 messagebox.showinfo("Info", "Steam needs to be closed to proceed.")
-                if not self.steam_manager.close_steam():
+                if not SteamManager.close_steam():
                     messagebox.showerror(
                         "Error", "Unable to close Steam. Please close it manually."
                     )
                     return
 
-            ini_file = self.game_manager.find_ini_file(game_directory)
+            ini_file = GameManager.find_ini_file(game_directory)
 
             if ini_file:
-                self.game_manager.update_ini_file(ini_file, steam_id, username)
-                self.game_manager.create_steam_appid_file(game_directory, app_id)
-                add_non_steam_game(game_name, exe_path, game_directory, icon_path)
+                GameManager.update_ini_file(ini_file, steam_id, username)
+                GameManager.create_steam_appid_file(game_directory, app_id)
+                SteamIntegration.add_non_steam_game(
+                    game_name, exe_path, game_directory, icon_path
+                )
                 messagebox.showinfo("Success", "Game added successfully!")
             else:
                 messagebox.showerror("Error", "INI file not found.")
