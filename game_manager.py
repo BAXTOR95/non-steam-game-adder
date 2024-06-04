@@ -1,11 +1,78 @@
+"""
+game_manager.py
+===============
+
+This module provides a class containing static methods to manage game configuration files.
+
+Classes
+-------
+GameManager
+    A class containing static methods to manage game configuration files.
+
+Functions
+---------
+None
+
+Attributes
+----------
+None
+
+Methods
+-------
+find_ini_file(directory)
+    Find the first .ini file in the given directory.
+
+update_ini_file(file_path, steam_id, username)
+    Update the .ini file with the given Steam ID and username.
+
+create_steam_appid_file(directory, app_id)
+    Create a steam_appid.txt file with the given app ID in the specified directory.
+
+Notes
+-----
+- The `os` library is used to handle file and directory operations.
+- The `logging` library is used to log information and errors.
+
+Example
+-------
+To find, update, and create configuration files:
+
+from game_manager import GameManager
+
+# Find .ini file in directory
+ini_file = GameManager.find_ini_file("path/to/directory")
+if ini_file:
+    print(f"Found .ini file: {ini_file}")
+else:
+    print("No .ini file found.")
+
+# Update .ini file with Steam ID and username
+GameManager.update_ini_file(ini_file, "123456789", "username")
+
+# Create steam_appid.txt file
+GameManager.create_steam_appid_file("path/to/directory", 123456)
+"""
+
 import os
 import logging
 
 
 class GameManager:
+    """
+    A class containing static methods to manage game configuration files.
+    """
+
     @staticmethod
     def find_ini_file(directory):
-        """Find the first .ini file in the given directory."""
+        """
+        Find the first .ini file in the given directory.
+
+        Args:
+            directory (str): The directory to search for .ini files.
+
+        Returns:
+            str: The path to the first .ini file found, else None.
+        """
         for root, _, files in os.walk(directory):
             for file in files:
                 if file.endswith(".ini"):
@@ -16,7 +83,14 @@ class GameManager:
 
     @staticmethod
     def update_ini_file(file_path, steam_id, username):
-        """Update the .ini file with the given Steam ID and username."""
+        """
+        Update the .ini file with the given Steam ID and username.
+
+        Args:
+            file_path (str): The path to the .ini file to update.
+            steam_id (str): The Steam ID to insert into the .ini file.
+            username (str): The username to insert into the .ini file.
+        """
         try:
             with open(file_path, 'r') as file:
                 lines = file.readlines()
@@ -37,7 +111,13 @@ class GameManager:
 
     @staticmethod
     def create_steam_appid_file(directory, app_id):
-        """Create a steam_appid.txt file with the given app ID in the specified directory."""
+        """
+        Create a steam_appid.txt file with the given app ID in the specified directory.
+
+        Args:
+            directory (str): The directory to create the steam_appid.txt file in.
+            app_id (int): The app ID to write to the steam_appid.txt file.
+        """
         try:
             file_path = os.path.join(directory, "steam_appid.txt")
             with open(file_path, 'w') as file:
