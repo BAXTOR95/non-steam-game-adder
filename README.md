@@ -30,21 +30,38 @@ Before you can run this application, you'll need to have the following installed
 
 ## Installation
 
-1. **Clone the Repository**: Download the repository from GitHub.
+1. **Clone the Repository (Requires Git to be installed on the machine, but recommended)**: Clone the repository from GitHub.
 
    ```sh
    git clone https://github.com/BAXTOR95/non-steam-game-adder.git
    cd non-steam-game-adder
    ```
 
-2. **Set up a Python Virtual Environment (Optional but recommended)**
+2. **Download the Repository (Optional)**: You can download the latest stable release (version 1.0) from the [Releases](https://github.com/BAXTOR95/non-steam-game-adder/releases) page.
+
+   1. **Download the Source Code**:
+
+      - Go to the [Releases](https://github.com/BAXTOR95/non-steam-game-adder/releases) page.
+      - Download the `Source code (zip)` or `Source code (tar.gz)` for version 1.0.
+
+   2. **Extract the Archive**:
+
+      - Extract the downloaded zip or tar.gz file to a directory on your computer (ex. non-steam-game-adder).
+
+   3. **Open a terminal and navigate to the extracted directory**
+
+      ```sh
+      cd non-steam-game-adder
+      ```
+
+3. **Set up a Python Virtual Environment (Optional but recommended)**
 
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
    ```
 
-3. **Install Required Packages**: Use pip to install the necessary packages.
+4. **Install Required Packages**: Use pip to install the necessary packages.
 
    ```sh
    pip install -r requirements.txt
