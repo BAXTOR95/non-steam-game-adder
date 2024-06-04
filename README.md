@@ -33,8 +33,8 @@ Before you can run this application, you'll need to have the following installed
 1. **Clone the Repository**: Download the repository from GitHub.
 
    ```sh
-   git clone https://github.com/BAXTOR95/SteamGameAutomator.git
-   cd SteamGameAutomator
+   git clone https://github.com/BAXTOR95/non-steam-game-adder.git
+   cd non-steam-game-adder
    ```
 
 2. **Set up a Python Virtual Environment (Optional but recommended)**
