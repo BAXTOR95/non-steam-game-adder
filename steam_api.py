@@ -25,9 +25,6 @@ Methods
 __init__(api_key)
     Initialize the SteamAPI class with the provided API key.
 
-get_steam_id(username)
-    Retrieve the Steam ID for a given username.
-
 get_app_list()
     Retrieve the list of all Steam applications.
 
@@ -67,7 +64,7 @@ import logging
 
 class SteamAPI:
     """
-    A class to interact with the Steam Web API for retrieving Steam IDs and app lists.
+    A class to interact with the Steam Web API for retrieving app lists and working with Steam IDs.
     """
 
     BASE_URL = "http://api.steampowered.com"
@@ -83,34 +80,23 @@ class SteamAPI:
         self.api_key = api_key
         self.app_list_cache = None
 
-    def get_steam_id(self, username):
+    def validate_steam_id(self, steam_id):
         """
-        Retrieve the Steam ID for a given username.
+        Validate the format of a given Steam ID.
 
         Args:
-            username (str): The Steam username to retrieve the Steam ID for.
+            steam_id (str): The Steam ID to validate.
 
         Returns:
-            str: The Steam ID if found, else None.
+            bool: True if the Steam ID is valid, False otherwise.
         """
-        try:
-            url = f"{self.BASE_URL}/ISteamUser/ResolveVanityURL/v0001/?key={self.api_key}&vanityurl={username}"
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-            steam_id = data['response'].get('steamid')
-            if steam_id:
-                logging.info(
-                    f"Retrieved Steam ID for username '{username}': {steam_id}"
-                )
-                return steam_id
-            logging.warning(
-                f"Steam ID not found for username '{username}'. Response: {data}"
-            )
-            return None
-        except requests.RequestException as e:
-            logging.error(f"Error retrieving Steam ID for username '{username}': {e}")
-            return None
+        # Basic validation: Steam ID should be a 17-digit number
+        if steam_id.isdigit() and len(steam_id) == 17:
+            logging.info(f"Valid Steam ID format: {steam_id}")
+            return True
+        else:
+            logging.warning(f"Invalid Steam ID format: {steam_id}")
+            return False
 
     def get_app_list(self):
         """
