@@ -54,17 +54,17 @@ class NonSteamGameAdderApp:
             row=1, column=1, padx=10, pady=5, sticky=W, columnspan=2
         )
 
-        ttk.Label(frame, text="Steam Username:").grid(
+        ttk.Label(frame, text="Steam ID:").grid(
             row=2, column=0, padx=10, pady=5, sticky=W
         )
-        self.username_entry = ttk.Entry(frame, width=30)
-        self.username_entry.grid(
+        self.steam_id_entry = ttk.Entry(frame, width=30)
+        self.steam_id_entry.grid(
             row=2, column=1, padx=10, pady=5, sticky=W, columnspan=2
         )
 
         config = load_config()
-        if 'username' in config:
-            self.username_entry.insert(0, config['username'])
+        if 'steam_id' in config:
+            self.steam_id_entry.insert(0, config['steam_id'])
 
         self.create_directory_entry(frame)
         self.create_executable_entry(frame)
@@ -146,20 +146,19 @@ class NonSteamGameAdderApp:
 
     def add_game(self):
         game_name = self.game_name_entry.get()
-        username = self.username_entry.get()
+        steam_id = self.steam_id_entry.get()
         game_directory = self.directory_entry.get()
         exe_path = self.exe_entry.get()
         icon_path = self.icon_entry.get()
 
         config = load_config()
-        config['username'] = username
+        config['steam_id'] = steam_id
         save_config(config)
 
         try:
-            steam_id = self.steam_api.get_steam_id(username)
-            if not steam_id:
+            if not self.steam_api.validate_steam_id(steam_id):
                 messagebox.showerror(
-                    "Error", "Steam Username not found. Please enter a valid username."
+                    "Error", "Invalid Steam ID format. Please enter a valid 17-digit Steam ID."
                 )
                 return
 
@@ -175,7 +174,6 @@ class NonSteamGameAdderApp:
                 app_id,
                 game_name,
                 steam_id,
-                username,
                 game_directory,
                 exe_path,
                 icon_path,
@@ -195,8 +193,7 @@ class NonSteamGameAdderApp:
             self.continue_adding_game(
                 app_id,
                 self.game_name_entry.get(),
-                self.steam_api.get_steam_id(self.username_entry.get()),
-                self.username_entry.get(),
+                self.steam_id_entry.get(),
                 self.directory_entry.get(),
                 self.exe_entry.get(),
                 self.icon_entry.get(),
@@ -215,7 +212,7 @@ class NonSteamGameAdderApp:
         submit_button.pack(pady=10)
 
     def continue_adding_game(
-        self, app_id, game_name, steam_id, username, game_directory, exe_path, icon_path
+        self, app_id, game_name, steam_id, game_directory, exe_path, icon_path
     ):
         try:
             if SteamManager.is_steam_running():
@@ -229,7 +226,7 @@ class NonSteamGameAdderApp:
             ini_file = GameManager.find_ini_file(game_directory)
 
             if ini_file:
-                GameManager.update_ini_file(ini_file, steam_id, username)
+                GameManager.update_ini_file(ini_file, steam_id)
                 GameManager.create_steam_appid_file(game_directory, app_id)
                 SteamIntegration.add_non_steam_game(
                     game_name, exe_path, game_directory, icon_path

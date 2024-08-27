@@ -22,8 +22,8 @@ Methods
 find_ini_file(directory)
     Find the first .ini file in the given directory.
 
-update_ini_file(file_path, steam_id, username)
-    Update the .ini file with the given Steam ID and username.
+update_ini_file(file_path, steam_id)
+    Update the .ini file with the given Steam ID.
 
 create_steam_appid_file(directory, app_id)
     Create a steam_appid.txt file with the given app ID in the specified directory.
@@ -46,8 +46,8 @@ if ini_file:
 else:
     print("No .ini file found.")
 
-# Update .ini file with Steam ID and username
-GameManager.update_ini_file(ini_file, "123456789", "username")
+# Update .ini file with Steam ID
+GameManager.update_ini_file(ini_file, "123456789")
 
 # Create steam_appid.txt file
 GameManager.create_steam_appid_file("path/to/directory", 123456)
@@ -82,14 +82,13 @@ class GameManager:
         return None
 
     @staticmethod
-    def update_ini_file(file_path, steam_id, username):
+    def update_ini_file(file_path, steam_id):
         """
-        Update the .ini file with the given Steam ID and username.
+        Update the .ini file with the given Steam ID.
 
         Args:
             file_path (str): The path to the .ini file to update.
             steam_id (str): The Steam ID to insert into the .ini file.
-            username (str): The username to insert into the .ini file.
         """
         try:
             with open(file_path, 'r') as file:
@@ -99,13 +98,9 @@ class GameManager:
                 for line in lines:
                     if 'PlayerID=' in line or 'AccountId=' in line:
                         file.write(f"AccountId={steam_id}\n")
-                    elif 'UserName=' in line:
-                        file.write(f"UserName={username}\n")
                     else:
                         file.write(line)
-            logging.info(
-                f"Updated .ini file at {file_path} with Steam ID and username."
-            )
+            logging.info(f"Updated .ini file at {file_path} with Steam ID.")
         except Exception as e:
             logging.error(f"Error updating .ini file at {file_path}: {e}")
 
