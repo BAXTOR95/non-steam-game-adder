@@ -100,18 +100,25 @@ Before you can run this application, you'll need to have the following installed
 1. **Add a Game**:
 
    - Open the application.
-   - Enter the game name and your Steam username.
+   - Enter the game name and your Steam ID (17-digit number).
    - Browse and select the game directory.
    - Browse and select the executable file for the game.
    - (Optional) The application will try to extract the game icon. If it fails, you can manually set an icon path.
    - Click "Add Game".
 
-2. **Manual App ID**:
+2. **Finding Your Steam ID**:
+   - Log in to your Steam account in a web browser.
+   - Go to your profile page.
+   - Your Steam ID is the 17-digit number in the URL of your profile page.
+   - Example: If your profile URL is `https://steamcommunity.com/profiles/78901234567890123`, your Steam ID is `78901234567890123`.
+
+3. **Manual App ID**:
    - If the application can't find the app ID for your game, it will open a browser window with SteamDB.
    - Find the app ID on SteamDB and enter it in the application when prompted.
 
 ## Troubleshooting
 
+- **Invalid Steam ID**: Make sure you're entering a valid 17-digit Steam ID. The application will show an error if the format is incorrect.
 - **Steam is Running**: If Steam is running, the application will prompt you to close it. Make sure to close Steam manually if the application fails to do so.
 - **Configuration Issues**: If the application fails to load or save configurations, check the `config.json` file in the project directory for errors.
 
